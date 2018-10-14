@@ -1,0 +1,52 @@
+***************************************************************************************************************************************
+OVERVIEW
+--------
+
+Timer A Blink is a program that toggles an LED using a timer. Instead of using infinite loops to count, Timer A Blink outsource the
+counting to Timer A and uses an interrupt vector that triggers when The value in Timer A reaches a specified value. This allows the 
+processor to go into low-power in between toggling the LED.
+
+Button Interrupt is implemented on two different development boards:
+1. MSP430G2553
+2. MSP420FR2311
+
+First, the general design of the implementation will be discussed. Then, the specific implementations on each board are discussed.
+
+***************************************************************************************************************************************
+GENERAL DESIGN
+--------------
+
+In order to execute this program:
+- certain pins on each processor are routed to LEDs on the development board
+- these pins are configured and initialized as GPIO--LEDs as outputs
+- an interupt must be enabled on the positive edge of the button press
+- timer A capture control must be set to capture compare interrupt enable (CCIE)
+- timer A control configured using the Secondary Master Clock in continuous mode with an internal divider of 8
+- timer A capture control register 0 must be set to a value to count to 10,000 (decimal)
+- at the end of initialization, the processor must go into low-power mode
+- outside the main function, an interrupt vector must be declared, which toggles the LED
+
+***************************************************************************************************************************************
+MSP430G2553 IMPLEMENTATION
+--------------------------
+
+- P1.0 is the pin routed to the LED (D1)
+- Bit 0 of P1SEL, P1DIR, and P1OUT are initialized accordingly
+- TACCL0 is set to CCIE, enabling an interrupt when the value in TA0R equals the value stored in TACCR0
+- after initialization, the processor goes to into low-power mode with the following code: _BIS_SR(LPM0_bits + GIE);
+- outside the main function, an interrupt vector is defined with the following code: #pragma vector=TIMER0_A0_VECTOR
+- an interrupt function, which toggles P1.0 (D1) is defined with the following code: __interrupt void TIMER0_A0(void)
+
+***************************************************************************************************************************************
+MSP430FR2311 IMPLEMENTATION
+---------------------------
+
+- the follwing code must be added to disable GPIO power-on default Hi-Z mode to use the ports: PM5CTL0 &= ~LOCKLPM5;
+- P1.0 is the pin routed to the LED (LED1)
+- Bit 0 of P1SEL, P1DIR, and P1OUT are initialized accordingly
+- TBCCL0 is set to CCIE, enabling an interrupt when the value in TB0R equals the value stored in TBCCR0
+- after initialization, the processor goes to into low-power mode with the following code: _BIS_SR(LPM1_bits + GIE);
+- outside the main function, an interrupt vector is defined with the following code: #pragma vector=TIMER0_B0_VECTOR
+- an interrupt function, which toggles P1.0 (KED1) is defined with the following code: __interrupt void TIMER0_B0(void)
+
+***************************************************************************************************************************************
