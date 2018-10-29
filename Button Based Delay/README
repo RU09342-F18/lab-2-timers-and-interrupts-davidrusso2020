@@ -4,7 +4,7 @@ THIS README IS NOT FINISHED YET
 OVERVIEW
 --------
 
-Button Interrupt is a program that toggles an LED with a button. Instead of using infinite loops to count, Button Interrupt uses
+Button Based Delay is a program that toggles an LED with a button. Instead of using infinite loops to count, Button Interrupt uses
 interrupt vectors that trigger at the positive edge of a button press. This allows the processor to go into low-power mode when not 
 performing computations. Note: the code does not account for debouncing as it is out of the scope of this lab. While the MSP430G2553
 has a built in debouncing circuit, the MSP430F5529 does not, so the functionality of the latter board suffers.
