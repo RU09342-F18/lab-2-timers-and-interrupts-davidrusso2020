@@ -4,14 +4,14 @@ THIS README IS NOT FINISHED YET
 OVERVIEW
 --------
 
-Button Based Delay is a program that toggles an LED with a button. Instead of using infinite loops to count, Button Interrupt uses
-interrupt vectors that trigger at the positive edge of a button press. This allows the processor to go into low-power mode when not 
-performing computations. Note: the code does not account for debouncing as it is out of the scope of this lab. While the MSP430G2553
-has a built in debouncing circuit, the MSP430F5529 does not, so the functionality of the latter board suffers.
+Button Based Delay is a program that initially blinks an LED (D1) at a default rate. Holding and releasing a button (S2) for an 
+arbitrary duration sets the LED to blink at that rate. Button Based Delay uses interrupt vectors that trigger at the positive edge of 
+a button press. This allows the processor to go into low-power mode when not performing computations. Note: the code does not account 
+for debouncing as it is out of the scope of this lab.
 
 Button Interrupt is implemented on two different development boards:
 1. MSP430G2553
-2. MSP420F5529
+2. MSP432P401R
 
 First, the general design of the implementation will be discussed. Then, the specific implementations on each board are discussed.
 
@@ -25,8 +25,14 @@ In order to execute this program:
 - a pull-down resistor needs to be enabled on the button to ensure the circuit does not float when the button is not pressed
 - an interupt must be enabled on the positive edge of the button press
 - the interrupt flag must be cleared during initialization and after each subsequent interrupt
+- the timer A capture compare control register must be set to capture-compare interrupt enable (CCIE)
+- timer A control must be initialized using SMCLK, Up-mode, and an internal divider of 8
+- timer A capture compare 0 register must be set to 50,000
 - at the end of initialization, the processor must go into low-power mode
-- outside the main function, an interrupt vector must be declared, which toggles the LED and clears the interrupt flag
+- outside the main function, several interrupt vectors must be enabled: one for timer A0, one for timer A1, and one for button port
+- the timer A
+interrupt vector must be declared, which toggles the LED and clears the interrupt flag
+- 
 
 ***************************************************************************************************************************************
 MSP430G2553 IMPLEMENTATION
