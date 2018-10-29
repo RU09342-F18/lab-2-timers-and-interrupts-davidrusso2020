@@ -1,0 +1,57 @@
+THIS README IS NOT FINISHED YET
+
+***************************************************************************************************************************************
+OVERVIEW
+--------
+
+Button Interrupt is a program that toggles an LED with a button. Instead of using infinite loops to count, Button Interrupt uses
+interrupt vectors that trigger at the positive edge of a button press. This allows the processor to go into low-power mode when not 
+performing computations. Note: the code does not account for debouncing as it is out of the scope of this lab. While the MSP430G2553
+has a built in debouncing circuit, the MSP430F5529 does not, so the functionality of the latter board suffers.
+
+Button Interrupt is implemented on two different development boards:
+1. MSP430G2553
+2. MSP420F5529
+
+First, the general design of the implementation will be discussed. Then, the specific implementations on each board are discussed.
+
+***************************************************************************************************************************************
+GENERAL DESIGN
+--------------
+
+In order to execute this program:
+- certain pins on each processor are routed to LEDs and buttons on the development board
+- these pins are configured and initialized as GPIO--buttons as inputs and LEDs as outputs
+- a pull-down resistor needs to be enabled on the button to ensure the circuit does not float when the button is not pressed
+- an interupt must be enabled on the positive edge of the button press
+- the interrupt flag must be cleared during initialization and after each subsequent interrupt
+- at the end of initialization, the processor must go into low-power mode
+- outside the main function, an interrupt vector must be declared, which toggles the LED and clears the interrupt flag
+
+***************************************************************************************************************************************
+MSP430G2553 IMPLEMENTATION
+--------------------------
+
+- P1.0 is the pin routed to the LED (D1), and P1.3 is the pin routed the button (S1)
+- Bits 0 and 3 of P1SEL, P1DIR, P1REN, and P1OUT are initialized accordingly
+- Bit 3 of P1IE is set high, enabling an interrupt on P1.3 (S1)
+- Bit 3 of P1IES is set high, configuring the interrupt to trigger on the positive edge of the button press
+- Bit 3 of P1IFG is set low, initializing the interrupt flag to off
+- after initialization, the processor goes to into low-power mode with the following code: _BIS_SR(LPM3_bits + GIE);
+- outside the main function, an interrupt vector is defined with the following code: #pragma vector=PORT1_VECTOR
+- an interrupt function, which toggles P1.0 and clears Bit 3 of P1IFG is declared as: __interrupt void Port_1(void)
+
+***************************************************************************************************************************************
+MSP430F5529 IMPLEMENTATION
+--------------------------
+
+- P1.0 is the pin routed to the LED (LED1), and P2.1 is the pin routed the button (S1)
+- Bit 0 of P1SEL, P1DIR, and P1OUT; and Bit 1 of P2SEL, P2DIR, P2REN, and P2OUT are initialized accordingly
+- Bit 1 of P2IE is set high, enabling an interrupt on P2.1 (S1)
+- Bit 1 of P2IES is set high, configuring the interrupt to trigger on the positive edge of the button press
+- Bit 1 of P2IFG is set low, initializing the interrupt flag to off
+- after initialization, the processor goes to into low-power mode with the following code: _BIS_SR(LPM1_bits + GIE);
+- outside the main function, an interrupt vector is defined with the following code: #pragma vector=PORT2_VECTOR
+- an interrupt function, which toggles P1.0 and clears Bit 1 of P2IFG is declared as: __interrupt void Port_2(void)
+
+***************************************************************************************************************************************
