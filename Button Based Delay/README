@@ -5,13 +5,13 @@ OVERVIEW
 --------
 
 Button Based Delay is a program that initially blinks an LED (D1) at a default rate. Holding and releasing a button (S2) for an 
-arbitrary duration sets the LED to blink at that rate. Button Based Delay uses interrupt vectors that trigger at the positive edge of 
-a button press. This allows the processor to go into low-power mode when not performing computations. Note: the code does not account 
-for debouncing as it is out of the scope of this lab.
+arbitrary duration sets the LED to blink at that rate. Button Based Delay uses interrupt vectors that trigger at the positive and
+negative edges of a button press. This allows the processor to go into low-power mode when not performing computations. Note: the 
+code does not account for debouncing as it is out of the scope of this lab.
 
 Button Interrupt is implemented on two different development boards:
 1. MSP430G2553
-2. MSP432P401R
+2. MSP430F5529
 
 First, the general design of the implementation will be discussed. Then, the specific implementations on each board are discussed.
 
@@ -30,16 +30,17 @@ In order to execute this program:
 - timer A capture compare 0 register must be set to 50,000
 - at the end of initialization, the processor must go into low-power mode
 - outside the main function, several interrupt vectors must be enabled: one for timer A0, one for timer A1, and one for button port
-- the timer A
-interrupt vector must be declared, which toggles the LED and clears the interrupt flag
-- 
+- the timer A0 interrupt must toggle the LED
+- the timer A1 interrupt must take care of the case when the button is held longer than the maximum blinking period
+- the Port 1 vector must stop blinking the LED and start counting if the the button is pressed
+- the Port 1 vector must also set the value of CCR0 to TA0R and continue to blink at that rate.
 
 ***************************************************************************************************************************************
 MSP430G2553 IMPLEMENTATION
 --------------------------
 
-- P1.0 is the pin routed to the LED (D1), and P1.3 is the pin routed the button (S1)
-- Bits 0 and 3 of P1SEL, P1DIR, P1REN, and P1OUT are initialized accordingly
+- P1.0 is the pin routed to the LED (D1), and P1.3 is the pin routed the button (S1), and P1.66 is the LED that tracks button pressing
+- Bits 0, 3, and 6 of P1SEL, P1DIR, P1REN, and P1OUT are initialized accordingly
 - Bit 3 of P1IE is set high, enabling an interrupt on P1.3 (S1)
 - Bit 3 of P1IES is set high, configuring the interrupt to trigger on the positive edge of the button press
 - Bit 3 of P1IFG is set low, initializing the interrupt flag to off
